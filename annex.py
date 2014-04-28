@@ -15,15 +15,6 @@ def call(cmds):
                             stderr=subprocess.PIPE)
 
 
-def annex_exists():
-    try:
-        proc = call(['git', 'annex', 'version'])
-        proc.communicate()
-        return proc.returncode == 0
-    except OSError:
-        return False
-
-
 def remotes():
     try:
         proc = call(['git', 'remote'])
@@ -33,6 +24,15 @@ def remotes():
         return []
 
 
+def annex_exists():
+    try:
+        proc = call(['git', 'annex', 'version'])
+        proc.communicate()
+        return proc.returncode == 0
+    except OSError:
+        return False
+
+
 def annex_call(fm, cmds, fname):
     # git annex fails with absolute paths ...
     thisdir = fm.thisdir
@@ -40,11 +40,11 @@ def annex_call(fm, cmds, fname):
     loader = CommandLoader(['git', 'annex'] + cmds + [fname],
                            'annex:{}'.format(' '.join(cmds)))
 
-    def reload():
+    def reload_dir():
         thisdir.unload()
         thisdir.load_content()
 
-    loader.signal_bind('after', reload)
+    loader.signal_bind('after', reload_dir)
     fm.loader.add(loader)
 
 
