@@ -1,9 +1,9 @@
 import os
-import threading
 import subprocess
 import ranger.api
 import ranger.api.commands
 import ranger.core.runner
+from ranger.core.loader import CommandLoader
 
 
 old_hook_init = ranger.api.hook_init
@@ -18,7 +18,7 @@ def call(cmds):
 def annex_exists():
     try:
         proc = call(['git', 'annex', 'version'])
-        result = proc.communicate()
+        proc.communicate()
         return proc.returncode == 0
     except OSError:
         return False
@@ -37,15 +37,15 @@ def annex_call(fm, cmds, fname):
     # git annex fails with absolute paths ...
     thisdir = fm.thisdir
     fname = os.path.basename(fname)
-    runner = ranger.core.runner.Runner(ui=fm.ui, fm=fm)
-    proc = runner(['git', 'annex'] + cmds + [fname], flags='s', wait=False)
+    loader = CommandLoader(['git', 'annex'] + cmds + [fname],
+                           'annex:{}'.format(' '.join(cmds)))
 
-    def reload_when_done():
-        proc.wait()
+    def reload():
         thisdir.unload()
         thisdir.load_content()
 
-    threading.Thread(target=reload_when_done).start()
+    loader.signal_bind('after', reload)
+    fm.loader.add(loader)
 
 
 def fnames(fm):
