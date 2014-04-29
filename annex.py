@@ -1,8 +1,8 @@
 import os
 import subprocess
 import ranger.api
-import ranger.api.commands
 import ranger.core.runner
+from ranger.api.commands import Command
 from ranger.core.loader import CommandLoader
 
 
@@ -52,21 +52,27 @@ def fnames(fm):
     return (str(fname) for fname in fm.env.get_selection())
 
 
-class get(ranger.api.commands.Command):
+class add(Command):
+    def execute(self):
+        self.fm.loader.add(CommandLoader(['git', 'annex', 'add'], 'annex:add'))
+        self.fm.loader.add(CommandLoader(['git', 'commit', '-m', '"add files"'], 'git:commit'))
+
+
+class get(Command):
     def execute(self):
         for fname in fnames(self.fm):
             if not os.path.exists(fname):
                 annex_call(self.fm, ['get'], fname)
 
 
-class drop(ranger.api.commands.Command):
+class drop(Command):
     def execute(self):
         for fname in fnames(self.fm):
             if os.path.exists(fname):
                 annex_call(self.fm, ['drop'], fname)
 
 
-class copy(ranger.api.commands.Command):
+class copy(Command):
     def tab(self):
         return ('annex_copy {}'.format(r) for r in remotes())
 
@@ -84,6 +90,7 @@ class copy(ranger.api.commands.Command):
 
 def hook_init(fm):
     if annex_exists():
+        fm.commands.commands['annex_add'] = add
         fm.commands.commands['annex_get'] = get
         fm.commands.commands['annex_drop'] = drop
         fm.commands.commands['annex_copy'] = copy
