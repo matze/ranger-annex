@@ -88,12 +88,19 @@ class copy(Command):
                 annex_call(self.fm, ['copy', '-t', remote], fname)
 
 
+class sync(Command):
+    def execute(self):
+        cmd = 'git annex sync --fast --quiet'.split()
+        self.fm.loader.add(CommandLoader(cmd, 'annex:sync'))
+
+
 def hook_init(fm):
     if annex_exists():
         fm.commands.commands['annex_add'] = add
-        fm.commands.commands['annex_get'] = get
-        fm.commands.commands['annex_drop'] = drop
         fm.commands.commands['annex_copy'] = copy
+        fm.commands.commands['annex_drop'] = drop
+        fm.commands.commands['annex_get'] = get
+        fm.commands.commands['annex_sync'] = sync
     else:
         fm.notify('Could not find git-annex', bad=True)
 
