@@ -49,30 +49,30 @@ def annex_call(fm, cmds, fname):
 
 
 def fnames(fm):
-    return (str(fname) for fname in fm.env.get_selection())
+    return (str(fname) for fname in fm.thistab.get_selection())
 
 
-class add(Command):
+class annex_add(Command):
     def execute(self):
         self.fm.loader.add(CommandLoader(['git', 'annex', 'add'], 'annex:add'))
         self.fm.loader.add(CommandLoader(['git', 'commit', '-m', '"add files"'], 'git:commit'))
 
 
-class get(Command):
+class annex_get(Command):
     def execute(self):
         for fname in fnames(self.fm):
             if not os.path.exists(fname):
                 annex_call(self.fm, ['get'], fname)
 
 
-class drop(Command):
+class annex_drop(Command):
     def execute(self):
         for fname in fnames(self.fm):
             if os.path.exists(fname):
                 annex_call(self.fm, ['drop'], fname)
 
 
-class copy(Command):
+class annex_copy(Command):
     def tab(self):
         return ('annex_copy {}'.format(r) for r in remotes())
 
@@ -88,7 +88,7 @@ class copy(Command):
                 annex_call(self.fm, ['copy', '-t', remote], fname)
 
 
-class sync(Command):
+class annex_sync(Command):
     def execute(self):
         cmd = 'git annex sync --fast --quiet'.split()
         self.fm.loader.add(CommandLoader(cmd, 'annex:sync'))
@@ -96,11 +96,11 @@ class sync(Command):
 
 def hook_init(fm):
     if annex_exists():
-        fm.commands.commands['annex_add'] = add
-        fm.commands.commands['annex_copy'] = copy
-        fm.commands.commands['annex_drop'] = drop
-        fm.commands.commands['annex_get'] = get
-        fm.commands.commands['annex_sync'] = sync
+        fm.commands.commands['annex_add'] = annex_add
+        fm.commands.commands['annex_copy'] = annex_copy
+        fm.commands.commands['annex_drop'] = annex_drop
+        fm.commands.commands['annex_get'] = annex_get
+        fm.commands.commands['annex_sync'] = annex_sync
     else:
         fm.notify('Could not find git-annex', bad=True)
 
