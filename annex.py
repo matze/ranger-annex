@@ -49,7 +49,7 @@ def annex_call(fm, cmds, fname):
 
 
 def fnames(fm):
-    return (str(fname) for fname in fm.env.get_selection())
+    return (str(fname) for fname in fm.thistab.get_selection())
 
 
 class add(Command):
